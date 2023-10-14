@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Higher or Lower Game</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #efede6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+
+        }
+
+        .card {
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px #e4e4dc;
+            padding: 45px; /* Increase padding for a larger card (50% bigger) */
+            border-radius: 8px;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            color: #2e2d2c;
+        }
+
+        input[type="number"] {
+            width: 160px; /* Increase width for a wider text input */
+            padding: 10px;
+            margin: 10px;
+            border-radius: 20px; /* Add border-radius for rounded corners */
+            border: 1px solid #ccc;
+        }
+
+        /* Remove up and down arrows from number input */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+            border: #888;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #dfd6c8;
+            color: rgb(0, 0, 0);
+            border: #a19f9d;
+            box-shadow: 0 4px 8px #e4e4dc;
+            border-width: 1px;
+            cursor: pointer;
+            border-radius: 9px;
+            font-family: 'Inter';
+        }
+
+        button:hover {
+            background-color: #ffffff;
+        }
+
+        p {
+            font-size: 18px;
+            color: #2e2d2c;
+        }
+
+        .animated-text {
+            animation: fadeInOut 2s linear infinite;
+        }
+
+        .modal {
+    position: absolute; 
+    z-index: 1; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+    border-radius: 20px;
+    border: none;
+    display: none;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; 
+    padding: 20px;
+    border: 1px solid #888;
+    width: 15%;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+
+
+        .message {
+            animation: fadeInOut 1s ease both;
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease both;
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+                /* Dark mode and light mode */
+                .dark-mode {
+            background-color: #040F16;
+            color: #ffffff;
+            
+        }
+
+        .dark-mode .card {
+            background-color: #121A1E;
+            box-shadow: 0 4px 8px #000000;
+        }
+
+        .dark-mode p {
+            color: #ffffff;
+        }
+
+        .dark-mode h1 {
+            color: #ffffff;
+        }
+
+        .dark-mode button {
+            background-color: #000000;
+            color: #ffffff;
+            box-shadow: 0 4px 8px #000000;
+            
+        }
+
+        .dark-mode .modal-content {
+            background-color: #121A1E;
+    margin: 15% auto; 
+    padding: 20px;
+    border: 1px solid #888;
+    width: 15%;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="container">
+            <h1>Higher or Lower Game</h1>
+            <p class="animated-text">Guess a number between 1-100 or a selected number of choice.</p>
+            <button id="settingsButton" style="position: absolute; top: 20px; right: 20px;">Settings</button>
+            <button id="darkModeButton" style="position: absolute; top: 20px; right: 120px;">Dark Mode</button>
+            <input type="number" id="guessInput" min="1" max="100">
+            <br>
+            <button id="guessButton">Submit Guess</button>
+            <p id="message" class="message">Higher or Lower</p>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Settings</h2>
+            <label for="minNumber">Minimum Number:</label><br>
+            <input type="number" id="minNumber" min="1" max="1000"><br>
+            <label for="maxNumber">Maximum Number:</label><br>
+            <input type="number" id="maxNumber" min="1" max="1000"><br>
+            <button id="saveSettingsButton">Save</button>
+        </div>
+    </div>
+
+    <div id="winModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Congratulations!</h2>
+            <p id="winMessage"></p>
+            <button id="retryButton">Retry</button>
+        </div>
+    </div>
+    
+
+    <script>
+        
+        let minNumber = 1;
+        let maxNumber = 100;
+
+
+        // Get the input element and button
+        const guessInput = document.getElementById("guessInput");
+        const guessButton = document.getElementById("guessButton");
+        const darkModeButton = document.getElementById("darkModeButton");
+
+let darkMode = false;
+
+darkModeButton.addEventListener("click", () => {
+    darkMode = !darkMode;
+    document.body.classList.toggle("dark-mode", darkMode);
+                // Change button text based on dark mode status
+                darkModeButton.textContent = darkMode ? "Light Mode" : "Dark Mode";
+});
+
+
+        // Get the message element
+        const message = document.getElementById("message");
+
+        // Initialize the number of tries
+        let tries = 0;
+
+        // Function to handle the user's guess
+        function checkGuess() {
+            const userGuess = parseInt(guessInput.value);
+            
+            if (userGuess < minNumber || userGuess > maxNumber || isNaN(userGuess)) {
+    message.textContent = `Please enter a valid number between ${minNumber} and ${maxNumber}.`;
+    return;
+}
+
+            tries++;
+
+            if (userGuess === randomNumber) {
+    document.getElementById("winMessage").textContent = `You guessed the number ${randomNumber} in ${tries} tries.`;
+    winModal.style.display = "block";
+            } else if (userGuess < randomNumber) {
+                message.textContent = "Higher";
+                message.classList.add("fade-in");
+            } else {
+                message.textContent = "Lower";
+                message.classList.add("fade-in");
+            }
+
+            guessInput.value = "";
+        }
+
+        var settingsModal = document.getElementById("settingsModal");
+var settingsButton = document.getElementById("settingsButton");
+var closeBtn = document.getElementsByClassName("close")[0];
+var saveSettingsButton = document.getElementById("saveSettingsButton");
+
+settingsButton.onclick = function() {
+    settingsModal.style.display = "block";
+}
+
+closeBtn.onclick = function() {
+    settingsModal.style.display = "none";
+}
+
+window.onclick = function(event) {
+    if (event.target == settingsModal) {
+        settingsModal.style.display = "none";
+    }
+}
+
+var winModal = document.getElementById("winModal");
+var retryButton = document.getElementById("retryButton");
+
+retryButton.onclick = function() {
+    randomNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
+    tries = 0;
+    winModal.style.display = "none";
+}
+
+
+let randomNumber; // Declare randomNumber at the top of your script
+
+// ...
+
+saveSettingsButton.onclick = function() {
+    minNumber = parseInt(document.getElementById("minNumber").value);
+    maxNumber = parseInt(document.getElementById("maxNumber").value);
+    randomNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber; // Generate a new random number based on the user's settings
+    settingsModal.style.display = "none";
+}
+
+
+
+        // Add an event listener for the guess button
+        guessButton.addEventListener("click", checkGuess);
+
+        // Remove the fade-in class after animation completes
+        message.addEventListener("animationend", () => {
+            message.classList.remove("fade-in");
+        });
+
+    </script>
+</body>
+</html>
